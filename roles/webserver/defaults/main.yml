@@ -1,0 +1,6 @@
+---
+webserver_port: 80
+webserver_document_root: "/var/www/html"
+webserver_server_name: "localhost"
+webserver_packages:
+  - nginx

@@ -1,0 +1,29 @@
+---
+- name: Install webserver packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ webserver_packages }}"
+
+- name: Create document root
+  ansible.builtin.file:
+    path: "{{ webserver_document_root }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0755"
+
+- name: Deploy index page
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ webserver_document_root }}/index.html"
+    owner: www-data
+    group: www-data
+    mode: "0644"
+  notify: Restart nginx
+
+- name: Ensure nginx is running
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true

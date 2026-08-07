@@ -1,0 +1,43 @@
+name: Ansible CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible and linter
+        run: |
+          pip install ansible ansible-lint
+
+      - name: Run ansible-lint
+        run: |
+          ansible-lint site.yml webserver.yml role-webserver.yml
+
+      - name: Syntax check - site playbook
+        run: |
+          ansible-playbook site.yml --syntax-check
+
+      - name: Syntax check - webserver playbook
+        run: |
+          ansible-playbook webserver.yml --syntax-check
+
+      - name: Syntax check - role playbook
+        run: |
+          ansible-playbook role-webserver.yml --syntax-check
+
+      - name: Dry-run site playbook (check mode)
+        run: |
+          ansible-playbook site.yml --check --diff

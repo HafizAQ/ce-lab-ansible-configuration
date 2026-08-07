@@ -1,0 +1,68 @@
+---
+- name: Configure web server
+  hosts: webservers
+  gather_facts: true
+
+  vars:
+    vhost_port: 80
+    document_root: "/var/www/{{ app_name }}"
+
+  tasks:
+    - name: Ensure nginx is installed
+      ansible.builtin.package:
+        name: nginx
+        state: present
+
+    - name: Create document root
+      ansible.builtin.file:
+        path: "{{ document_root }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+
+    - name: Deploy custom index page
+      ansible.builtin.template:
+        src: roles/webserver/templates/index.html.j2
+        dest: "{{ document_root }}/index.html"
+        owner: www-data
+        group: www-data
+        mode: "0644"
+      notify: Reload nginx
+
+    - name: Configure nginx default site
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/{{ app_name }}
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          server {
+              listen {{ vhost_port }};
+              server_name {{ nginx_server_name }};
+              root {{ document_root }};
+              index index.html;
+
+              location / {
+                  try_files $uri $uri/ =404;
+              }
+
+              access_log /var/log/nginx/{{ app_name }}_access.log;
+              error_log  /var/log/nginx/{{ app_name }}_error.log;
+          }
+      notify: Reload nginx
+
+    - name: Enable site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/{{ app_name }}
+        dest: /etc/nginx/sites-enabled/{{ app_name }}
+        state: link
+        force: true
+      notify: Reload nginx
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+      when: not ansible_check_mode

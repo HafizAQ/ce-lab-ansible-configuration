@@ -1,0 +1,19 @@
+---
+app_name: "bootcamp-app"
+app_environment: "development"
+app_port: 8080
+deploy_user: "{{ lookup('env', 'USER') | default('root', true) }}"
+ 
+packages:
+  - nginx
+  - git
+  - curl
+ 
+app_directories:
+  - /opt/{{ app_name }}
+  - /opt/{{ app_name }}/config
+  - /opt/{{ app_name }}/logs
+  - /var/www/{{ app_name }}
+ 
+nginx_worker_processes: 2
+nginx_server_name: "localhost"

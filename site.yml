@@ -1,0 +1,43 @@
+---
+- name: Base server configuration
+  hosts: local
+  gather_facts: true
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+
+    - name: Install required packages
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ packages }}"
+
+    - name: Create application directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ deploy_user | default('root') }}"
+        group: "{{ deploy_user | default('root') }}"
+        mode: "0755"
+      loop: "{{ app_directories }}"
+
+    - name: Deploy application config from template
+      ansible.builtin.template:
+        src: templates/app.conf.j2
+        dest: "/opt/{{ app_name }}/config/app.conf"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Display configuration summary
+      ansible.builtin.debug:
+        msg: |
+          Base configuration complete:
+            App: {{ app_name }}
+            Environment: {{ app_environment }}
+            Packages installed: {{ packages | join(', ') }}
+            Directories created: {{ app_directories | length }}

@@ -1,0 +1,9 @@
+---
+- name: Apply webserver role
+  hosts: webservers
+  become: true
+  roles:
+    - role: webserver
+      vars:
+        webserver_document_root: "/var/www/{{ app_name }}"
+        webserver_server_name: "{{ nginx_server_name }}"

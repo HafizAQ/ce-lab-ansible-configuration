@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ app_name }} — {{ app_environment }}</title>
+</head>
+<body>
+  <h1>Welcome to {{ app_name }}</h1>
+  <p>Environment: <strong>{{ app_environment }}</strong></p>
+  <p>Server: {{ ansible_hostname | default('unknown') }}</p>
+  <p>Managed by Ansible</p>
+</body>
+</html>
